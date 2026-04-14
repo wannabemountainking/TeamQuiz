@@ -23,12 +23,15 @@ final class TeamQuizViewModel {
     var scoreP1: Int
     var scoreP2: Int
     var totalScore: Int
-    var hasPassed: Bool = false
+    var hasPassed: Bool {
+        totalScore >= 10
+    }
     
     init(scoreP1: Int = 0, scoreP2: Int = 0, totalScore: Int = 0) {
         self.scoreP1 = scoreP1
         self.scoreP2 = scoreP2
         self.totalScore = totalScore
+        calculateScores()
     }
     
     func calculateScores() {
@@ -56,20 +59,17 @@ final class TeamQuizViewModel {
         
         p1.combineLatest(p2)
             .map { [weak self] (p1Score, p2Score) in
-                guard let self else {return 0}
+                guard let self else { return 0 }
                 self.scoreP1 = p1Score
                 self.scoreP2 = p2Score
-                self.totalScore = p1Score + p2Score
-                return self.totalScore
+                print(p1Score, p2Score)
+                return p1Score + p2Score
             }
             .filter( { $0 >= 10 } )
             .removeDuplicates()
             .sink { [weak self] total in
-                guard let self else {
-                    self?.hasPassed = false
-                    return
-                }
-                self.hasPassed = true
+                guard let self else {return}
+                self.totalScore = total
             }
             .store(in: &cancellables)
     }
